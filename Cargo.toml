@@ -1,11 +1,21 @@
 [package]
 authors     = ["Xavier Lau <xavier@inv.cafe>"]
 build       = "build.rs"
-description = "<DESCRIPTION>"
+description = "A bot for Polkadot parachain auction."
 edition     = "2021"
-homepage    = "https://<NAME>.hack.ink"
+homepage    = "https://slothunter.hack.ink"
 license     = "GPL-3.0"
-name        = "<NAME>"
+name        = "slothunter"
 readme      = "README.md"
-repository  = "https://github.com/hack-ink/<NAME>"
+repository  = "https://github.com/hack-ink/slothunter"
 version     = "0.1.0"
+
+[build-dependencies]
+vergen = { version = "7.5" }
+
+[dependencies]
+anyhow     = { version = "1.0" }
+reqwest    = { version = "0.11", features = ["json"] }
+serde      = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+tokio      = { version = "1.25", features = ["macros", "rt-multi-thread"] }
