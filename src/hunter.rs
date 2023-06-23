@@ -45,6 +45,7 @@ pub struct Hunter {
 	pub bidder: AccountId,
 }
 impl Hunter {
+	#[allow(unused)]
 	#[cfg(feature = "node-test")]
 	async fn tester() -> Self {
 		let configuration = Configuration {
@@ -302,30 +303,20 @@ impl Hunter {
 
 		tracing::info!("  {}", auction.fmt(block_height, end_at));
 
-		let Some(self_bid) = self.analyze_bidders(&block_hash, auction.index, has_bid).await? else { return Ok(()); };
+		let Some(self_bid) = self.analyze_bidders(&block_hash, auction, has_bid).await? else { return Ok(()); };
 		let Some(winning) = self.analyze_winning(
 			&block_hash,
 			block_height,
-			auction.first_lease_period,
-			auction.ending_period_start_at,
+			auction,
 		).await? else { return Ok(()); };
 
-		self.analyze_winners(
-			block_height,
-			&block_hash,
-			&winning,
-			auction.index,
-			auction.first_lease_period,
-			self_bid,
-			has_bid,
-		)
-		.await
+		self.analyze_winners(block_height, &block_hash, auction, &winning, self_bid, has_bid).await
 	}
 
 	async fn analyze_bidders(
 		&self,
 		block_hash: &H256,
-		auction_index: u32,
+		auction: &AuctionDetail,
 		has_bid: &mut bool,
 	) -> Result<Option<Balance>> {
 		tracing::info!("    bidders");
@@ -335,7 +326,7 @@ impl Hunter {
 		if bidders.is_empty() {
 			tracing::info!("      no bidders were found");
 
-			self.try_tender(auction_index, self.configuration.bid.increment, 0).await?;
+			self.try_tender(auction.index, self.configuration.bid.increment, 0).await?;
 
 			*has_bid = true;
 
@@ -363,13 +354,12 @@ impl Hunter {
 		&self,
 		block_hash: &H256,
 		block_height: BlockNumber,
-		first_lease_period: u32,
-		ending_period_start_at: BlockNumber,
+		auction: &AuctionDetail,
 	) -> Result<Option<Winning>> {
 		tracing::info!("    winning");
 
 		let winning = self
-			.winning_at(block_hash, block_height, ending_period_start_at)
+			.winning_at(block_hash, block_height, auction.ending_period_start_at)
 			.await?
 			.expect("winning must be some if bidders is not empty");
 
@@ -380,7 +370,7 @@ impl Hunter {
 		}
 
 		winning
-			.fmt(&self.configuration.token, first_lease_period)
+			.fmt(&self.configuration.token, auction.first_lease_period)
 			.into_iter()
 			.for_each(|w| tracing::info!("      {w}"));
 
@@ -391,9 +381,8 @@ impl Hunter {
 		&self,
 		block_height: BlockNumber,
 		block_hash: &H256,
+		auction: &AuctionDetail,
 		winning: &Winning,
-		auction_index: u32,
-		first_lease_period: u32,
 		self_bid: Balance,
 		has_bid: &mut bool,
 	) -> Result<()> {
@@ -403,7 +392,7 @@ impl Hunter {
 		let notification = winners
 			.iter()
 			.map(|w| {
-				let n = w.fmt(&self.configuration.token, first_lease_period);
+				let n = w.fmt(&self.configuration.token, auction.first_lease_period);
 
 				tracing::info!("      {n}");
 
@@ -428,13 +417,13 @@ impl Hunter {
 
 		if !self.is_winner(&winners) {
 			let leases = (
-				self.configuration.bid.leases.0 - first_lease_period,
-				self.configuration.bid.leases.1 - first_lease_period,
+				self.configuration.bid.leases.0 - auction.first_lease_period,
+				self.configuration.bid.leases.1 - auction.first_lease_period,
 			);
 			let bid =
 				winning.minimum_bid_to_win(&leases, threshold) + self.configuration.bid.increment;
 
-			self.try_tender(auction_index, bid, self_bid).await?;
+			self.try_tender(auction.index, bid, self_bid).await?;
 
 			*has_bid = true;
 		}

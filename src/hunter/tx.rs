@@ -89,7 +89,7 @@ async fn tx_should_work() {
 		);
 		let proxied_transfer = util::proxy_of(&hunter.configuration.bid.real, transfer);
 
-		assert_eq!(hunter.tx(&proxied_transfer).await.unwrap().unwrap(), ());
+		assert!(hunter.tx(&proxied_transfer).await.unwrap().is_ok());
 	}
 
 	{
@@ -120,7 +120,7 @@ async fn tx_should_work() {
 			"Balances",
 			"transfer",
 			vec![
-				Value::unnamed_variant("Id", [Value::from_bytes(&hunter.configuration.bid.real)]),
+				Value::unnamed_variant("Id", [Value::from_bytes(hunter.configuration.bid.real)]),
 				Value::u128(10_000_000_000_000_000_000),
 			],
 		);
@@ -138,12 +138,12 @@ async fn tx_should_work() {
 			"Balances",
 			"transfer_all",
 			vec![
-				Value::unnamed_variant("Id", [Value::from_bytes(&hunter.configuration.bid.real)]),
+				Value::unnamed_variant("Id", [Value::from_bytes(hunter.configuration.bid.real)]),
 				Value::bool(true),
 			],
 		);
 
-		assert_eq!(hunter.tx(&transfer_all).await.unwrap().unwrap(), ());
+		assert!(hunter.tx(&transfer_all).await.unwrap().is_ok());
 	}
 
 	{
