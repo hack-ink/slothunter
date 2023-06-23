@@ -1,11 +1,42 @@
 [package]
 authors     = ["Xavier Lau <xavier@inv.cafe>"]
 build       = "build.rs"
-description = "<DESCRIPTION>"
+description = "A bot for Polkadot parachain auction."
 edition     = "2021"
-homepage    = "https://<NAME>.hack.ink"
+homepage    = "https://slothunter.hack.ink"
 license     = "GPL-3.0"
-name        = "<NAME>"
+name        = "slothunter"
 readme      = "README.md"
-repository  = "https://github.com/hack-ink/<NAME>"
+repository  = "https://github.com/hack-ink/slothunter"
 version     = "0.1.0"
+
+[features]
+node-test = []
+
+[build-dependencies]
+# crates.io
+vergen = { version = "8.2", features = ["build", "cargo", "git", "gitcl"] }
+
+[dependencies]
+# crates.io
+anyhow             = { version = "1.0" }
+app_dirs2          = { version = "2.5" }
+array-bytes        = { version = "6.1" }
+clap               = { version = "4.3", features = ["derive"] }
+color-eyre         = { version = "0.6" }
+futures            = { version = "0.3" }
+lettre             = { version = "0.10" }
+parity-scale-codec = { version = "3.6" }
+regex              = { version = "1.8" }
+reqwest            = { version = "0.11", features = ["json"] }
+scale-decode       = { version = "0.7" }
+scale-value        = { version = "0.10" }
+serde              = { version = "1.0", features = ["derive"] }
+serde_json         = { version = "1.0" }
+sp-core            = { version = "21.0" }
+sp-runtime         = { version = "24.0" }
+subxt              = { version = "0.29" }
+tokio              = { version = "1.28", features = ["macros", "rt-multi-thread"] }
+toml               = { version = "0.7" }
+tracing            = { version = "0.1" }
+tracing-subscriber = { version = "0.3" }

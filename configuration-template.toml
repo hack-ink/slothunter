@@ -1,0 +1,128 @@
+# Relaychain network.
+#
+# Possible values: "kusama", "polkadot".
+network = "polkadot"
+# GraphQL HTTP(S) URI.
+#
+# This line can be commented out. Otherwise, it will replace the default URI of `network`.
+# graphql-endpoint = "http://127.0.0.1:3000/graphql"
+# Network WS(S) URI.
+#
+# This line can be commented out. Otherwise, it will replace the default URI of `network`.
+# node-endpoint = "ws://127.0.0.1:9944"
+# Block subscription mode.
+#
+# Possible values: "best", "finalized".
+#
+# best: Subscribe to the best block, this strategy is faster and can increase your chances of
+# winning the auction, but it becomes unsafe if there is a fork.
+#
+# finalized: Subscribe to the latest finalized block.
+block-subscription-mode = "finalized"
+
+[bid]
+# Parachain's identity you are bidding for.
+para-id = 2000
+# Lease(s) you are bidding for.
+#
+# E.G.
+# Bid for 8 leases.
+# Example values: [0, 7], [10, 17], [100, 107]
+leases = [0, 0]
+# Bidding type.
+#
+# Possible values: "self-funded", "crowdloan".
+type = "self-funded"
+# The real account's public key.
+#
+# E.G.
+# Secret Key URI `//Alice` is account:
+#   Network ID:        substrate
+#  Secret seed:       0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a
+#   Public key (hex):  0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
+#   Account ID:        0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
+#   Public key (SS58): 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+#   SS58 Address:      5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+real = "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
+# Delegate/proxy account's private key/seed.
+#
+# For better safety, Slothunter only allows the use of delegate/proxy accounts for bidding/contributing.
+#
+# E.G.
+# Secret Key URI `//Bob` is account:
+#   Network ID:        substrate
+#  Secret seed:       0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89
+#   Public key (hex):  0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48
+#   Account ID:        0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48
+#   Public key (SS58): 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
+#   SS58 Address:      5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
+delegate = "0x398f0c28f98885e046333d4a41c19cee4c37368a9832c6502f6cfd182e2aef89"
+# Upper limit of the bids.
+#
+# Slothunter will stop bidding if the minimum winning amount exceeds this value.
+#
+# Generally, this value should be equal to or greater than the increment.
+upper-limit = "1000000000000000"
+# Bid increment.
+#
+# This should be at least 1 DOT/KSM.
+#
+# Generally, the minimum value(1 DOT/KSM) should help you win the auction.
+# However, if there are a lot of Slothunters or someone bids at the same time, you may lose the auction.
+# To increase your chances of winning, consider increasing this value.
+#
+# Note that this value will serve as the default bid for the first bidder in case there are no other bidders.
+#
+# E.G.
+# A  : (0, 3) -> 10
+# B  : (0, 1) -> 10
+# C  : (2, 2) -> 5
+# D  : (1, 3) -> 11
+# E  : (3, 3) -> 16
+# You: (1, 2) -> x
+#
+# Current winners are `B`, `C`, and `E`, the threshold is calculated as `2 * 10 + 5 + 16 = 41`.
+# Slothunter will calculate the value of `x` which is equal to `12` and then bid with the amount of `(x + increment)`.
+# The calculation for winning the bid would be: `(x(12) + increment(1)) * 2 + 16 = 42 > 41`, hence, win.
+# Since DOT's decimals are ten, there should be ten zeros here.
+increment = "10000000000"
+
+[notification]
+# Notification webhooks.
+#
+# Periodic notification will be sent to the following webhook addresses.
+#
+# If you don't wish to use any webhooks, leave this field empty.
+#
+# E.G.
+# This can be integrated into:
+# - A Discord channel using a Discord webhook.
+# - A Telegram channel using a Telegram bot.
+# - A Slack channel using a Slack webhook.
+webhooks = [
+	# "https://example.com/webhook",
+	# "https://example.com/webhook1",
+	# "https://example.com/webhook2",
+]
+# Notification mail configurations.
+#
+# If you don't wish to use any mail notifications, keep this(`[notification.mail]`) whole section commented out.
+[notification.mail]
+# Notification will be sent to the following recipients.
+# receivers = [
+# 	"example1@gmail.com",
+# 	"example2@gmail.com",
+# 	"example@gmail.com",
+# ]
+# [notification.mail.sender]
+# Sender's mail password:
+# Note:
+#   This is usually an app-specific password instead of your account password.
+#   For example, you can generate an app-spceific password by following the instructions provided in this link: https://support.google.com/accounts/answer/185833?hl=en.
+# password = "google mail app password"
+# Sender's mail address.
+# username = "example@gmail.com"
+# SMTP server address.
+#
+# The default value is the SMTP server address of Gmail.
+# stmp = "smtp.gmail.com"
