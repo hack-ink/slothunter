@@ -14,8 +14,9 @@
   - Docker Compose
 - Download
   - [Polkadot v0.9.43](https://github.com/paritytech/polkadot/releases/download/v0.9.43/polkadot)
-  - [Rococo testing chainspec](#)
+  - [Rococo testing chainspec](https://github.com/hack-ink/slothunter/releases/download/v0.1.0/rococo.json.fork-off)
 - Addition
+  - Move the downloads to the `test/integration/data` directory
   - Ensure that no other programs are using ports `3000`, `8000`, and `9944`
 ### Basic test
 1. Go to the root directory of this repository
