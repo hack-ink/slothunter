@@ -28,18 +28,15 @@ jobs:
       - name: Setup Rust toolchain
         run: rustup target add ${{ matrix.target.name }}
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --locked --target ${{ matrix.target.name }}
+        run: cargo build --release --locked --target ${{ matrix.target.name }}
       - name: Compress
         run: |
-          mv target/${{ matrix.target.name }}/release/<NAME>${{ matrix.target.extension }} .
-          zstd --ultra -22 -o <NAME>-${{ matrix.target.name }}.zst <NAME>${{ matrix.target.extension }}
+          mv target/${{ matrix.target.name }}/release/slothunter${{ matrix.target.extension }} .
+          zstd --ultra -22 -o slothunter-${{ matrix.target.name }}.zst slothunter${{ matrix.target.extension }}
       - name: Collect artifact
         run: |
           mkdir -p artifacts
-          mv <NAME>-${{ matrix.target.name }}.zst artifacts
+          mv slothunter-${{ matrix.target.name }}.zst artifacts
       - name: Upload artifact
         uses: actions/upload-artifact@v3.1.2
         with:
