@@ -91,7 +91,7 @@ upper-limit = "1000000000000000"
 # Slothunter will calculate the value of `x` which is equal to `12` and then bid with the amount of `(x + increment)`.
 # The calculation for winning the bid would be: `(x(12) + increment(1)) * 2 + 16 = 42 > 41`, hence, win.
 # Since DOT's decimals are ten, there should be ten zeros here.
-increment = "10000000000000"
+increment = "2000000000000"
 
 [notification]
 # Notification webhooks.
@@ -105,22 +105,30 @@ increment = "10000000000000"
 # - A Discord channel using a Discord webhook.
 # - A Telegram channel using a Telegram bot.
 # - A Slack channel using a Slack webhook.
-webhooks = []
+webhooks = [
+	# "https://example.com/webhook",
+	# "https://example.com/webhook1",
+	# "https://example.com/webhook2",
+]
 # Notification mail configurations.
 #
 # If you don't wish to use any mail notifications, keep this(`[notification.mail]`) whole section commented out.
-[notification.mail]
+# [notification.mail]
 # Notification will be sent to the following recipients.
-receivers = []
-[notification.mail.sender]
+# receivers = [
+# 	"example1@gmail.com",
+# 	"example2@gmail.com",
+# 	"example@gmail.com",
+# ]
+# [notification.mail.sender]
 # Sender's mail password:
 # Note:
 #   This is usually an app-specific password instead of your account password.
 #   For example, you can generate an app-spceific password by following the instructions provided in this link: https://support.google.com/accounts/answer/185833?hl=en.
-password = "PASSWORD"
+# password = "google mail app password"
 # Sender's mail address.
-username = "USERNAME"
+# username = "example@gmail.com"
 # SMTP server address.
 #
 # The default value is the SMTP server address of Gmail.
-smtp = "smtp.gmail.com"
+# stmp = "smtp.gmail.com"
