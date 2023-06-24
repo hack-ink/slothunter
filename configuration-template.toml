@@ -1,7 +1,7 @@
 # Relaychain network.
 #
 # Possible values: "kusama", "polkadot".
-network = "polkadot"
+network = "kusama"
 # GraphQL HTTP(S) URI.
 #
 # This line can be commented out. Otherwise, it will replace the default URI of `network`.
@@ -18,7 +18,7 @@ network = "polkadot"
 # winning the auction, but it becomes unsafe if there is a fork.
 #
 # finalized: Subscribe to the latest finalized block.
-block-subscription-mode = "finalized"
+block-subscription-mode = "best"
 
 [bid]
 # Parachain's identity you are bidding for.
@@ -85,7 +85,7 @@ upper-limit = "1000000000000000"
 # Slothunter will calculate the value of `x` which is equal to `12` and then bid with the amount of `(x + increment)`.
 # The calculation for winning the bid would be: `(x(12) + increment(1)) * 2 + 16 = 42 > 41`, hence, win.
 # Since DOT's decimals are ten, there should be ten zeros here.
-increment = "10000000000"
+increment = "2000000000000"
 
 [notification]
 # Notification webhooks.
@@ -107,7 +107,7 @@ webhooks = [
 # Notification mail configurations.
 #
 # If you don't wish to use any mail notifications, keep this(`[notification.mail]`) whole section commented out.
-[notification.mail]
+# [notification.mail]
 # Notification will be sent to the following recipients.
 # receivers = [
 # 	"example1@gmail.com",
