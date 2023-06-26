@@ -66,4 +66,4 @@
 - Default proxy accounts are `//Alice/stash` with `ProxyType::All` and `//Bob` with `ProxyType::Auction`
 - Default parachains and their owners are `(Alice, 2000)`, `(Charlie, 2001)` and `(Dave, 2002)`
 
-All of this data is pre-set and was built from Polkadot's latest Rococo-local chain with the assistance of [Subalfred fork-off](https://subalfred.hack.ink/user/cli/state.html#command-state-fork-off).
+All of this data is pre-set and was built from Polkadot's latest rococo-local chain with the assistance of [Subalfred fork-off](https://subalfred.hack.ink/user/cli/state.html#command-state-fork-off).
