@@ -238,11 +238,13 @@ impl Token {
 
 impl Hunter {
 	pub async fn from_configuration(configuration: Configuration) -> Result<Self> {
-		let node = OnlineClient::from_url(&configuration.node_endpoint).await?;
+		let client = Self::ws_connect(&configuration.node_endpoint).await?;
+		let node = OnlineClient::from_rpc_client(client.clone()).await?;
 
 		Ok(Self {
 			configuration,
 			http: util::http_json_client(),
+			_ws_connection: client,
 			node,
 			auction: None,
 			auction_ending_period: 0,
