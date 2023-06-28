@@ -358,11 +358,11 @@ impl Hunter {
 
 		assert!(
 			c_first >= first,
-			"{E_INVALID_LEASES}, available range(s)(#{first}, #{last}) found range(s)(#{c_first}, #{c_last})"
+			"{E_INVALID_LEASES}, available range(#{first}, #{last}) found range(#{c_first}, #{c_last})"
 		);
 		assert!(
 			c_last >= last,
-			"{E_INVALID_LEASES}, available range(s)(#{first}, #{last}) found range(s)(#{c_first}, #{c_last})"
+			"{E_INVALID_LEASES}, available range(#{first}, #{last}) found range(#{c_first}, #{c_last})"
 		);
 	}
 
