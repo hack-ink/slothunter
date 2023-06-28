@@ -50,11 +50,26 @@ async fn main() -> Result<()> {
 	tracing_subscriber::fmt::init();
 
 	let Cli { configuration } = Cli::parse();
+	let mut hunter = Hunter::from_configuration(
+		ConfigurationToml::load(configuration)?.try_into_configuration()?,
+	)
+	.await?;
 
-	Hunter::from_configuration(ConfigurationToml::load(configuration)?.try_into_configuration()?)
-		.await?
-		.start()
-		.await?;
+	while let Err(e) = hunter.start().await {
+		if hunter.ws_is_connected() {
+			panic!("{e}");
+		} else {
+			tracing::error!("websocket connection was lost due to error({e})");
+
+			let mut tried = false;
+
+			while let Err(e) = hunter.ws_reconnect(&mut tried).await {
+				tracing::error!("failed to establish a websocket connection due to error({e})");
+			}
+
+			tracing::info!("websocket connection has been reestablished");
+		}
+	}
 
 	Ok(())
 }

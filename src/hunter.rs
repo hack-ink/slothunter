@@ -18,9 +18,13 @@ pub use tx::*;
 pub use crate::prelude::*;
 
 // std
-use std::mem;
+use std::{mem, sync::Arc, thread, time::Duration};
 // crates.io
 use futures::StreamExt;
+use jsonrpsee::{
+	async_client::{Client as WsClient, ClientBuilder as WsClientBuilder},
+	client_transport::ws::WsTransportClientBuilder,
+};
 use reqwest::Client;
 use scale_value::ValueDef;
 #[cfg(feature = "node-test")] use sp_core::{sr25519::Pair, Pair as _};
@@ -37,6 +41,7 @@ type Block =
 pub struct Hunter {
 	pub configuration: Configuration,
 	pub http: Client,
+	_ws_connection: Arc<WsClient>,
 	pub node: OnlineClient<PolkadotConfig>,
 	pub auction: Option<AuctionDetail>,
 	pub auction_ending_period: BlockNumber,
@@ -69,11 +74,13 @@ impl Hunter {
 			},
 			notification: Notification { mail: None, webhooks: Vec::new() },
 		};
-		let node = OnlineClient::from_url(&configuration.node_endpoint).await.unwrap();
+		let client = Self::ws_connect(&configuration.node_endpoint).await.unwrap();
+		let node = OnlineClient::from_rpc_client(client.clone()).await.unwrap();
 
 		Self {
 			configuration,
 			http: util::http_json_client(),
+			_ws_connection: client,
 			node,
 			auction: None,
 			auction_ending_period: 0,
@@ -127,6 +134,31 @@ impl Hunter {
 			self.update(&block_hash).await?;
 			self.hunt(block_height, block_hash, &mut has_bid).await?;
 		}
+	}
+
+	pub fn ws_is_connected(&self) -> bool {
+		self._ws_connection.is_connected()
+	}
+
+	pub async fn ws_reconnect(&mut self, tried: &mut bool) -> Result<()> {
+		if *tried {
+			thread::sleep(Duration::from_secs(5));
+		}
+
+		*tried = true;
+
+		let client = Self::ws_connect(&self.configuration.node_endpoint).await?;
+
+		self.node = OnlineClient::from_rpc_client(client.clone()).await?;
+		self._ws_connection = client;
+
+		Ok(())
+	}
+
+	async fn ws_connect(uri: &str) -> Result<Arc<WsClient>> {
+		let (tx, rx) = WsTransportClientBuilder::default().build(uri.parse()?).await?;
+
+		Ok(Arc::new(WsClientBuilder::default().build_with_tokio(tx, rx)))
 	}
 
 	async fn initialize(&mut self) -> Result<BlockStream> {

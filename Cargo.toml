@@ -25,6 +25,7 @@ array-bytes        = { version = "6.1" }
 clap               = { version = "4.3", features = ["derive"] }
 color-eyre         = { version = "0.6" }
 futures            = { version = "0.3" }
+jsonrpsee          = { version = "0.16", features = ["async-client", "jsonrpsee-client-transport", "ws-client"] }
 lettre             = { version = "0.10" }
 parity-scale-codec = { version = "3.6" }
 regex              = { version = "1.8" }
