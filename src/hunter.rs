@@ -74,8 +74,8 @@ impl Hunter {
 			},
 			notification: Notification { mail: None, webhooks: Vec::new() },
 		};
-		let client = Self::ws_connect(&configuration.node_endpoint).await?;
-		let node = OnlineClient::from_rpc_client(client.clone()).await?;
+		let client = Self::ws_connect(&configuration.node_endpoint).await.unwrap();
+		let node = OnlineClient::from_rpc_client(client.clone()).await.unwrap();
 
 		Self {
 			configuration,
