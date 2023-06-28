@@ -358,9 +358,7 @@ impl Hunter {
 		if bidders.is_empty() {
 			tracing::info!("      no bidders were found");
 
-			self.try_tender(auction.index, self.configuration.bid.increment, 0).await?;
-
-			*has_bid = true;
+			*has_bid = self.try_tender(auction.index, self.configuration.bid.increment, 0).await?;
 
 			return Ok(None);
 		}
@@ -455,15 +453,18 @@ impl Hunter {
 			let bid =
 				winning.minimum_bid_to_win(&leases, threshold) + self.configuration.bid.increment;
 
-			self.try_tender(auction.index, bid, self_bid).await?;
-
-			*has_bid = true;
+			*has_bid = self.try_tender(auction.index, bid, self_bid).await?;
 		}
 
 		Ok(())
 	}
 
-	async fn try_tender(&self, auction_index: u32, bid: Balance, self_bid: Balance) -> Result<()> {
+	async fn try_tender(
+		&self,
+		auction_index: u32,
+		bid: Balance,
+		self_bid: Balance,
+	) -> Result<bool> {
 		if self.watch_only() {
 			fn log(mode: &str, bid: String) {
 				tracing::warn!("    slothunter is running under the watch-only mode, {mode} {bid} manually to win");
@@ -475,12 +476,13 @@ impl Hunter {
 				log("contribute", self.configuration.token.fmt(bid - self_bid))
 			}
 
-			Ok(())
+			Ok(false)
 		} else {
 			fn log(mode: &str, bid: String, upper_limit: String) -> String {
 				format!("    skip {mode} {bid} because it exceeds the upper limit {upper_limit}")
 			}
 
+			let has_bid;
 			let notification;
 
 			if self.is_self_funded() {
@@ -490,12 +492,14 @@ impl Hunter {
 
 						tracing::error!("{n}");
 
+						has_bid = false;
 						notification = n.trim_start_matches(' ').to_string();
 					} else {
 						let n = format!("    bid with {}", self.configuration.token.fmt(bid));
 
 						tracing::info!("{n}");
 
+						has_bid = true;
 						notification = n.trim_start_matches(' ').to_string();
 					}
 				} else {
@@ -507,6 +511,7 @@ impl Hunter {
 
 					tracing::warn!("{n}");
 
+					has_bid = false;
 					notification = n.trim_start_matches(' ').to_string();
 				}
 			} else {
@@ -518,6 +523,7 @@ impl Hunter {
 
 						tracing::error!("{n}");
 
+						has_bid = false;
 						notification = n.trim_start_matches(' ').to_string();
 					} else {
 						let n =
@@ -525,6 +531,7 @@ impl Hunter {
 
 						tracing::info!("{n}");
 
+						has_bid = true;
 						notification = n.trim_start_matches(' ').to_string();
 					}
 				} else {
@@ -536,6 +543,7 @@ impl Hunter {
 
 					tracing::warn!("{n}");
 
+					has_bid = false;
 					notification = n.trim_start_matches(' ').to_string();
 				}
 			}
@@ -543,7 +551,7 @@ impl Hunter {
 			self.notify_mail(&None::<()>, &notification);
 			self.notify_webhook(&None::<()>, &notification).await;
 
-			Ok(())
+			Ok(has_bid)
 		}
 	}
 }
