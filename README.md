@@ -3,6 +3,8 @@
 # Slothunter
 ### A bot for Polkadot parachain auction.
 
+<img width="400" src="https://raw.githubusercontent.com/w3f/Grants-Program/master/static/img/badge_black.svg"/>
+
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Checks](https://github.com/hack-ink/slothunter/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/hack-ink/slothunter/actions/workflows/checks.yml)
 [![Release](https://github.com/hack-ink/slothunter/actions/workflows/release.yml/badge.svg)](https://github.com/hack-ink/slothunter/actions/workflows/release.yml)
