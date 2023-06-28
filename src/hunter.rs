@@ -327,6 +327,9 @@ impl Hunter {
 		has_bid: &mut bool,
 	) -> Result<()> {
 		let Some(auction) = &self.auction else { return Ok(()) };
+
+		self.check_lease(auction.first_lease_period);
+
 		let end_at = auction.ending_period_start_at + self.auction_ending_period;
 
 		if end_at <= block_height {
@@ -343,6 +346,24 @@ impl Hunter {
 		).await? else { return Ok(()); };
 
 		self.analyze_winners(block_height, &block_hash, auction, &winning, self_bid, has_bid).await
+	}
+
+	fn check_lease(&self, first_lease_period: u32) {
+		const E_INVALID_LEASES: &str = "invalid leases configuration";
+
+		let c_first = self.configuration.bid.leases.0;
+		let c_last = self.configuration.bid.leases.1;
+		let first = first_lease_period;
+		let last = first_lease_period + C_RANGE_COUNT - 1;
+
+		assert!(
+			c_first >= first,
+			"{E_INVALID_LEASES}, available range(#{first}, #{last}) but found range(#{c_first}, #{c_last})"
+		);
+		assert!(
+			c_last >= last,
+			"{E_INVALID_LEASES}, available range(#{first}, #{last}) but found range(#{c_first}, #{c_last})"
+		);
 	}
 
 	async fn analyze_bidders(
