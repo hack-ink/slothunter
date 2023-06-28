@@ -482,7 +482,7 @@ impl Hunter {
 				format!("    skip {mode} {bid} because it exceeds the upper limit {upper_limit}")
 			}
 
-			let has_bid;
+			let mut has_bid = false;
 			let notification;
 
 			if self.is_self_funded() {
@@ -492,7 +492,6 @@ impl Hunter {
 
 						tracing::error!("{n}");
 
-						has_bid = false;
 						notification = n.trim_start_matches(' ').to_string();
 					} else {
 						let n = format!("    bid with {}", self.configuration.token.fmt(bid));
@@ -511,7 +510,6 @@ impl Hunter {
 
 					tracing::warn!("{n}");
 
-					has_bid = false;
 					notification = n.trim_start_matches(' ').to_string();
 				}
 			} else {
@@ -523,7 +521,6 @@ impl Hunter {
 
 						tracing::error!("{n}");
 
-						has_bid = false;
 						notification = n.trim_start_matches(' ').to_string();
 					} else {
 						let n =
@@ -543,7 +540,6 @@ impl Hunter {
 
 					tracing::warn!("{n}");
 
-					has_bid = false;
 					notification = n.trim_start_matches(' ').to_string();
 				}
 			}
