@@ -29,6 +29,10 @@ para-id = 2000
 # Bid for 8 leases.
 # Example values: [0, 7], [10, 17], [100, 107]
 leases = [0, 0]
+# Watch-only mode.
+#
+# No extrinsic will be sent in this mode.
+watch-only = false
 # Bidding type.
 #
 # Possible values: "self-funded", "crowdloan".
@@ -125,4 +129,4 @@ webhooks = [
 # SMTP server address.
 #
 # The default value is the SMTP server address of Gmail.
-# stmp = "smtp.gmail.com"
+# smtp = "smtp.gmail.com"
