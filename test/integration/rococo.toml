@@ -131,4 +131,4 @@ webhooks = [
 # SMTP server address.
 #
 # The default value is the SMTP server address of Gmail.
-# stmp = "smtp.gmail.com"
+# smtp = "smtp.gmail.com"
