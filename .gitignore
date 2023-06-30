@@ -14,5 +14,6 @@ book
 index.html
 
 # Test data
+nohup.out
 test/integration/data
 test/integration/secret.toml

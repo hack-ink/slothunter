@@ -120,9 +120,15 @@ impl Hunter {
 
 				has_bid = false;
 
-				Self::next_block(&mut block_stream).await?;
+				let b = Self::next_block(&mut block_stream).await?;
 
-				Self::next_block(&mut block_stream).await?
+				dbg!(b.number());
+
+				let b1 = Self::next_block(&mut block_stream).await?;
+
+				dbg!(b1.number());
+
+				b1
 			} else {
 				Self::next_block(&mut block_stream).await?
 			};
@@ -328,7 +334,7 @@ impl Hunter {
 	) -> Result<()> {
 		let Some(auction) = &self.auction else { return Ok(()) };
 
-		self.check_lease(auction.first_lease_period);
+		self.check_leases(auction.first_lease_period);
 
 		let end_at = auction.ending_period_start_at + self.auction_ending_period;
 
@@ -348,7 +354,7 @@ impl Hunter {
 		self.analyze_winners(block_height, &block_hash, auction, &winning, self_bid, has_bid).await
 	}
 
-	fn check_lease(&self, first_lease_period: u32) {
+	fn check_leases(&self, first_lease_period: u32) {
 		const E_INVALID_LEASES: &str = "invalid leases configuration";
 
 		let c_first = self.configuration.bid.leases.0;
@@ -361,7 +367,7 @@ impl Hunter {
 			"{E_INVALID_LEASES}, available range(#{first}, #{last}) but found range(#{c_first}, #{c_last})"
 		);
 		assert!(
-			c_last >= last,
+			c_last <= last,
 			"{E_INVALID_LEASES}, available range(#{first}, #{last}) but found range(#{c_first}, #{c_last})"
 		);
 	}
