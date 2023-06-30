@@ -70,6 +70,60 @@ fn crowdloan_id_of_should_work() {
 	);
 }
 
+pub fn range_of(first_lease_period: u32) -> SlotRange {
+	(first_lease_period, first_lease_period + C_RANGE_COUNT - 1)
+}
+#[test]
+fn range_of_should_work() {
+	assert_eq!(range_of(10), (10, 17));
+}
+
+pub fn check_leases(a: &SlotRange, b: &SlotRange) -> bool {
+	(a.0 <= b.0) && (a.1 >= b.1)
+}
+#[test]
+fn check_leases_should_work() {
+	// Test when a completely overlaps b.
+	let a = (5, 10);
+	let b = (7, 8);
+	assert!(check_leases(&a, &b));
+
+	// Test when b completely overlaps a.
+	let a = (5, 10);
+	let b = (3, 12);
+	assert!(!check_leases(&a, &b));
+
+	// Test when a starts before b and ends before b.
+	let a = (5, 10);
+	let b = (7, 12);
+	assert!(!check_leases(&a, &b));
+
+	// Test when a starts before b and ends after b.
+	let a = (5, 15);
+	let b = (7, 12);
+	assert!(check_leases(&a, &b));
+
+	// Test when a starts after b and ends after b.
+	let a = (7, 12);
+	let b = (5, 10);
+	assert!(!check_leases(&a, &b));
+
+	// Test when a starts after b and ends before b.
+	let a = (7, 8);
+	let b = (5, 10);
+	assert!(!check_leases(&a, &b));
+
+	// Test when a and b are the same.
+	let a = (5, 10);
+	let b = (5, 10);
+	assert!(check_leases(&a, &b));
+
+	// Test when a and b do not overlap.
+	let a = (5, 10);
+	let b = (12, 15);
+	assert!(!check_leases(&a, &b));
+}
+
 pub fn winning_offset_of(
 	block_number: BlockNumber,
 	ending_period_start_at: BlockNumber,

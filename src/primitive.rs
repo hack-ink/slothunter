@@ -23,12 +23,11 @@ pub struct AuctionDetail {
 impl AuctionDetail {
 	pub fn fmt(&self, now: BlockNumber, end_at: BlockNumber) -> String {
 		let remain_blocks = end_at.saturating_sub(now);
+		let (first, last) = util::range_of(self.first_lease_period);
 
 		format!(
-			"auction(#{}) for leases[#{}, #{}) has been activated for block range[#{}, #{end_at}], remain {remain_blocks} block(s) approximately {}",
+			"auction(#{}) for leases(#{first}, #{last}) has been activated for block range(#{}, #{end_at}), remain {remain_blocks} block(s) approximately {}",
 			self.index,
-			self.first_lease_period,
-			self.first_lease_period + C_RANGE_COUNT,
 			self.ending_period_start_at,
 			util::blocks2time(remain_blocks)
 		)

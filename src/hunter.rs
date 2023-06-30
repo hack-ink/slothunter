@@ -355,21 +355,12 @@ impl Hunter {
 	}
 
 	fn check_leases(&self, first_lease_period: u32) {
-		const E_INVALID_LEASES: &str = "invalid leases configuration";
+		let a @ (first, last) = util::range_of(first_lease_period);
+		let b @ (c_first, c_last) = self.configuration.bid.leases;
 
-		let c_first = self.configuration.bid.leases.0;
-		let c_last = self.configuration.bid.leases.1;
-		let first = first_lease_period;
-		let last = first_lease_period + C_RANGE_COUNT - 1;
-
-		assert!(
-			c_first >= first,
-			"{E_INVALID_LEASES}, available range(#{first}, #{last}) but found range(#{c_first}, #{c_last})"
-		);
-		assert!(
-			c_last <= last,
-			"{E_INVALID_LEASES}, available range(#{first}, #{last}) but found range(#{c_first}, #{c_last})"
-		);
+		if !util::check_leases(&a, &b) {
+			panic!("invalid leases configuration, available range(#{first}, #{last}) but found range(#{c_first}, #{c_last})")
+		}
 	}
 
 	async fn analyze_bidders(
