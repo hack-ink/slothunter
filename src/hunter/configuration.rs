@@ -246,10 +246,8 @@ impl Hunter {
 			http: util::http_json_client(),
 			_ws_connection: client,
 			node,
-			auction: None,
 			auction_ending_period: 0,
 			auction_sample_length: 0,
-			auction_is_open: false,
 			bidder: AccountId::default(),
 		})
 	}
