@@ -37,16 +37,16 @@ type BlockStream = std::pin::Pin<
 type Block =
 	subxt::blocks::Block<subxt::PolkadotConfig, subxt::OnlineClient<subxt::PolkadotConfig>>;
 
+const E_STATE_AUCTION_MUST_BE_SOME: &str = "`state.auction` must be some";
+
 #[derive(Debug)]
 pub struct Hunter {
 	pub configuration: Configuration,
 	pub http: Client,
 	_ws_connection: Arc<WsClient>,
 	pub node: OnlineClient<PolkadotConfig>,
-	pub auction: Option<AuctionDetail>,
 	pub auction_ending_period: BlockNumber,
 	pub auction_sample_length: BlockNumber,
-	pub auction_is_open: bool,
 	pub bidder: AccountId,
 }
 impl Hunter {
@@ -82,10 +82,8 @@ impl Hunter {
 			http: util::http_json_client(),
 			_ws_connection: client,
 			node,
-			auction: None,
 			auction_ending_period: 0,
 			auction_sample_length: 0,
-			auction_is_open: false,
 			bidder: AccountId::default(),
 		}
 	}
@@ -111,34 +109,26 @@ impl Hunter {
 	}
 
 	pub async fn start(&mut self) -> Result<()> {
-		let mut block_stream = self.initialize().await?;
-		let mut has_bid = false;
+		let (mut state, mut block_stream) = self.initialize().await?;
 
 		loop {
-			let block = if has_bid {
+			if state.has_bid {
 				tracing::info!("skip 1 block after tendering");
 
-				has_bid = false;
+				state.has_bid = false;
 
-				let b = Self::next_block(&mut block_stream).await?;
+				Self::next_block(&mut block_stream).await?;
+			}
 
-				dbg!(b.number());
+			let block = Self::next_block(&mut block_stream).await?;
 
-				let b1 = Self::next_block(&mut block_stream).await?;
+			state.block_height = block.number();
+			state.block_hash = block.hash();
 
-				dbg!(b1.number());
+			tracing::info!("block(#{}, {:?})", state.block_height, state.block_hash);
 
-				b1
-			} else {
-				Self::next_block(&mut block_stream).await?
-			};
-			let block_height = block.number();
-			let block_hash = block.hash();
-
-			tracing::info!("block(#{block_height}, {block_hash:?})");
-
-			self.update(&block_hash).await?;
-			self.hunt(block_height, block_hash, &mut has_bid).await?;
+			self.update(&mut state).await?;
+			self.hunt(&mut state).await?;
 		}
 	}
 
@@ -167,10 +157,11 @@ impl Hunter {
 		Ok(Arc::new(WsClientBuilder::default().build_with_tokio(tx, rx)))
 	}
 
-	async fn initialize(&mut self) -> Result<BlockStream> {
+	async fn initialize(&mut self) -> Result<(State, BlockStream)> {
 		self.auction_ending_period = self.auction_ending_period().await?;
 		self.auction_sample_length = self.auction_sample_length().await?;
 
+		let mut state = State::default();
 		let mut block_stream = match self.configuration.block_subscription_mode {
 			BlockSubscriptionMode::Best => self.node.blocks().subscribe_best().await?,
 			BlockSubscriptionMode::Finalized => self.node.blocks().subscribe_finalized().await?,
@@ -179,8 +170,6 @@ impl Hunter {
 
 		self.check(&block_hash).await?;
 
-		self.auction = self.auction_at(&block_hash).await?;
-		self.auction_is_open = self.auction.is_some();
 		self.bidder = if self.is_self_funded() {
 			self.configuration.bid.real
 		} else {
@@ -189,8 +178,10 @@ impl Hunter {
 				self.configuration.bid.para_id,
 			)))
 		};
+		state.auction = self.auction_at(&block_hash).await?;
+		state.auction_is_open = state.auction.is_some();
 
-		Ok(block_stream)
+		Ok((state, block_stream))
 	}
 
 	async fn next_block(block_stream: &mut BlockStream) -> Result<Block> {
@@ -243,7 +234,10 @@ impl Hunter {
 				.find(|p| p.delegate.r#type == delegate.0)
 				.expect(E_DELEGATE)
 				.proxy_type
-				.value else { panic!("{E_DELEGATE}") };
+				.value
+			else {
+				panic!("{E_DELEGATE}")
+			};
 
 			if !matches!(v.name.as_str(), "All" | "Auction") {
 				panic!("{E_DELEGATE}")
@@ -293,17 +287,17 @@ impl Hunter {
 		Ok(())
 	}
 
-	async fn update(&mut self, block_hash: &H256) -> Result<()> {
+	async fn update(&self, state: &mut State) -> Result<()> {
 		let previous_auction = {
-			let auction = self.auction_at(block_hash).await?;
+			let auction = self.auction_at(&state.block_hash).await?;
 
-			mem::replace(&mut self.auction, auction)
+			mem::replace(&mut state.auction, auction)
 		};
 
-		self.auction_is_open = match (self.auction_is_open, self.auction.is_some()) {
+		state.auction_is_open = match (state.auction_is_open, state.auction.is_some()) {
 			// An auction has just been opened.
 			(false, true) => {
-				let a = self.auction.as_ref().expect("`self.auction` must be some");
+				let a = state.auction.as_ref().expect("`state.auction` must be some");
 
 				self.notify_mail(a, "auction has just been started");
 				self.notify_webhook(a, "auction has just been started").await;
@@ -317,6 +311,8 @@ impl Hunter {
 				self.notify_mail(&a, "auction has just been closed");
 				self.notify_webhook(&a, "auction has just been closed").await;
 
+				*state = State::default();
+
 				false
 			},
 			// Still in/not in an auction.
@@ -326,32 +322,27 @@ impl Hunter {
 		Ok(())
 	}
 
-	async fn hunt(
-		&self,
-		block_height: BlockNumber,
-		block_hash: H256,
-		has_bid: &mut bool,
-	) -> Result<()> {
-		let Some(auction) = &self.auction else { return Ok(()) };
+	async fn hunt(&self, state: &mut State) -> Result<()> {
+		let Some(auction) = &state.auction else { return Ok(()) };
 
 		self.check_leases(auction.first_lease_period);
 
 		let end_at = auction.ending_period_start_at + self.auction_ending_period;
 
-		if end_at <= block_height {
+		if end_at <= state.block_height {
 			return Ok(());
 		}
 
-		tracing::info!("  {}", auction.fmt(block_height, end_at));
+		tracing::info!("  {}", auction.fmt(state.block_height, end_at));
 
-		let Some(self_bid) = self.analyze_bidders(&block_hash, auction, has_bid).await? else { return Ok(()); };
-		let Some(winning) = self.analyze_winning(
-			&block_hash,
-			block_height,
-			auction,
-		).await? else { return Ok(()); };
+		if !self.analyze_bidders(state).await? {
+			return Ok(());
+		}
+		if !self.analyze_winning(state).await? {
+			return Ok(());
+		}
 
-		self.analyze_winners(block_height, &block_hash, auction, &winning, self_bid, has_bid).await
+		self.analyze_winners(state).await
 	}
 
 	fn check_leases(&self, first_lease_period: u32) {
@@ -363,25 +354,21 @@ impl Hunter {
 		}
 	}
 
-	async fn analyze_bidders(
-		&self,
-		block_hash: &H256,
-		auction: &AuctionDetail,
-		has_bid: &mut bool,
-	) -> Result<Option<Balance>> {
+	async fn analyze_bidders(&self, state: &mut State) -> Result<bool> {
+		let auction = state.auction.as_ref().expect(E_STATE_AUCTION_MUST_BE_SOME);
+
 		tracing::info!("    bidders");
 
-		let bidders = self.bidders_at(block_hash).await?;
+		let bidders = self.bidders_at(&state.block_hash).await?;
 
 		if bidders.is_empty() {
 			tracing::info!("      no bidders were found");
 
-			*has_bid = self.try_tender(auction.index, self.configuration.bid.increment, 0).await?;
+			self.try_tender(state, auction.index, self.configuration.bid.increment).await?;
 
-			return Ok(None);
+			// No need to do further analysis if there is no bidder.
+			return Ok(false);
 		}
-
-		let mut self_bid = 0;
 
 		bidders.into_iter().for_each(|b| {
 			tracing::info!("      {}", b.fmt(&self.configuration.token));
@@ -390,53 +377,46 @@ impl Hunter {
 				tracing::info!("        last accepted bid is {}", l.fmt(&self.configuration.token));
 
 				if self.is_bidder(&b.who, b.para_id) {
-					self_bid = l.amount;
+					state.bid_amount = l.amount;
 				}
 			}
 		});
 
-		Ok(Some(self_bid))
+		Ok(true)
 	}
 
-	async fn analyze_winning(
-		&self,
-		block_hash: &H256,
-		block_height: BlockNumber,
-		auction: &AuctionDetail,
-	) -> Result<Option<Winning>> {
+	async fn analyze_winning(&self, state: &mut State) -> Result<bool> {
+		let auction = state.auction.as_ref().expect(E_STATE_AUCTION_MUST_BE_SOME);
+
 		tracing::info!("    winning");
 
-		let winning = self
-			.winning_at(block_hash, block_height, auction.ending_period_start_at)
+		state.winning = self
+			.winning_at(&state.block_hash, state.block_height, auction.ending_period_start_at)
 			.await?
 			.expect("winning must be some if bidders is not empty");
 
-		if winning.0.iter().all(Option::is_none) {
+		if state.winning.0.iter().all(Option::is_none) {
 			tracing::info!("      no winning has been calculated yet");
 
-			return Ok(None);
+			// No need to do further analysis if there is no winning.
+			return Ok(false);
 		}
 
-		winning
+		state
+			.winning
 			.fmt(&self.configuration.token, auction.first_lease_period)
 			.into_iter()
 			.for_each(|w| tracing::info!("      {w}"));
 
-		Ok(Some(winning))
+		Ok(true)
 	}
 
-	async fn analyze_winners(
-		&self,
-		block_height: BlockNumber,
-		block_hash: &H256,
-		auction: &AuctionDetail,
-		winning: &Winning,
-		self_bid: Balance,
-		has_bid: &mut bool,
-	) -> Result<()> {
+	async fn analyze_winners(&self, state: &mut State) -> Result<()> {
+		let auction = state.auction.as_ref().expect(E_STATE_AUCTION_MUST_BE_SOME);
+
 		tracing::info!("    winner(s)");
 
-		let (winners, threshold) = winning.result();
+		let (winners, threshold) = state.winning.result();
 		let notification = winners
 			.iter()
 			.map(|w| {
@@ -452,14 +432,14 @@ impl Hunter {
 		self.notify_webhook(
 			&serde_json::json!({
 				"block": {
-					"height": block_height,
-					"hash": block_hash,
+					"height": state.block_height,
+					"hash": state.block_hash,
 				},
-				"winning": winning.0.as_slice(),
+				"winning": state.winning.0.as_slice(),
 				"winners": winners,
 
 			}),
-			&format!("at block(#{block_height}, {block_hash:?})\n{notification}"),
+			&format!("at block(#{}, {:?})\n{notification}", state.block_hash, state.block_height),
 		)
 		.await;
 
@@ -468,40 +448,39 @@ impl Hunter {
 				self.configuration.bid.leases.0 - auction.first_lease_period,
 				self.configuration.bid.leases.1 - auction.first_lease_period,
 			);
-			let bid =
-				winning.minimum_bid_to_win(&leases, threshold) + self.configuration.bid.increment;
+			let bid = state.winning.minimum_bid_to_win(&leases, threshold)
+				+ self.configuration.bid.increment;
 
-			*has_bid = self.try_tender(auction.index, bid, self_bid).await?;
+			self.try_tender(state, auction.index, bid).await?;
 		}
 
 		Ok(())
 	}
 
-	async fn try_tender(
-		&self,
-		auction_index: u32,
-		bid: Balance,
-		self_bid: Balance,
-	) -> Result<bool> {
+	async fn try_tender(&self, state: &mut State, auction_index: u32, bid: Balance) -> Result<()> {
 		if self.watch_only() {
-			fn log(mode: &str, bid: String) {
-				tracing::warn!("    slothunter is running under the watch-only mode, {mode} {bid} manually to win");
+			fn log(mode: &str, bid: String) -> String {
+				format!("    slothunter is running under the watch-only mode, {mode} {bid} manually to win")
 			}
 
-			if self.is_self_funded() {
+			let notification = if self.is_self_funded() {
 				log("bid", self.configuration.token.fmt(bid))
 			} else {
-				log("contribute", self.configuration.token.fmt(bid - self_bid))
-			}
+				log("contribute", self.configuration.token.fmt(bid - state.bid_amount))
+			};
 
-			Ok(false)
+			tracing::warn!("{notification}");
+
+			self.notify_webhook(&None::<()>, &notification).await;
+
+			Ok(())
 		} else {
 			fn log(mode: &str, bid: String, upper_limit: String) -> String {
 				format!("    skip {mode} {bid} because it exceeds the upper limit {upper_limit}")
 			}
 
-			let mut has_bid = false;
 			let notification;
+			let unaffordable;
 
 			if self.is_self_funded() {
 				if self.can_spend(bid) {
@@ -510,13 +489,18 @@ impl Hunter {
 
 						tracing::error!("{n}");
 
+						state.has_bid = false;
+						state.retries += 1;
+						unaffordable = false;
 						notification = n.trim_start_matches(' ').to_string();
 					} else {
 						let n = format!("    bid with {}", self.configuration.token.fmt(bid));
 
 						tracing::info!("{n}");
 
-						has_bid = true;
+						state.has_bid = true;
+						state.retries = 0;
+						unaffordable = false;
 						notification = n.trim_start_matches(' ').to_string();
 					}
 				} else {
@@ -528,10 +512,13 @@ impl Hunter {
 
 					tracing::warn!("{n}");
 
+					state.has_bid = false;
+					state.retries = 0;
+					unaffordable = true;
 					notification = n.trim_start_matches(' ').to_string();
 				}
 			} else {
-				let bid = bid - self_bid;
+				let bid = bid - state.bid_amount;
 
 				if self.can_spend(bid) {
 					if let Err(e) = self.contribute(bid).await? {
@@ -539,6 +526,9 @@ impl Hunter {
 
 						tracing::error!("{n}");
 
+						state.has_bid = false;
+						state.retries += 1;
+						unaffordable = false;
 						notification = n.trim_start_matches(' ').to_string();
 					} else {
 						let n =
@@ -546,7 +536,9 @@ impl Hunter {
 
 						tracing::info!("{n}");
 
-						has_bid = true;
+						state.has_bid = true;
+						state.retries = 0;
+						unaffordable = false;
 						notification = n.trim_start_matches(' ').to_string();
 					}
 				} else {
@@ -558,14 +550,35 @@ impl Hunter {
 
 					tracing::warn!("{n}");
 
+					state.has_bid = false;
+					state.retries = 0;
+					unaffordable = true;
 					notification = n.trim_start_matches(' ').to_string();
 				}
 			}
 
-			self.notify_mail(&None::<()>, &notification);
+			if state.retries < 5 && !state.unaffordable {
+				self.notify_mail(&None::<()>, &notification);
+			}
+
 			self.notify_webhook(&None::<()>, &notification).await;
 
-			Ok(has_bid)
+			state.unaffordable = unaffordable;
+
+			Ok(())
 		}
 	}
+}
+
+#[derive(Debug, Default)]
+struct State {
+	block_hash: H256,
+	block_height: BlockNumber,
+	auction: Option<AuctionDetail>,
+	auction_is_open: bool,
+	has_bid: bool,
+	bid_amount: Balance,
+	winning: Winning,
+	retries: u8,
+	unaffordable: bool,
 }

@@ -214,7 +214,7 @@ impl Default for Winning {
 		Self([None; 36])
 	}
 }
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Default, Serialize)]
 #[cfg_attr(not(test), derive(Debug))]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct Winner {
