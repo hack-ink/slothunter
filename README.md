@@ -49,7 +49,7 @@ For more details, please refer to [guide.md](test/guide.md).
 <div align="center">
 
 ![crab](pic/crab.png)
-As shown in the picture, Slothunter promptly placed their bid immediately after other competitors.
+*As shown in the picture, Slothunter promptly placed their bid immediately after other competitors.*
 
 </div>
 
