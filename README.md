@@ -42,3 +42,14 @@ Open the configuration file and edit the items. The file contains highly detaile
 
 ### Addition
 For more details, please refer to [guide.md](test/guide.md).
+
+## Used by
+### Crab
+**Slothunter assisted Crab in winning the 91st parachain auction on Kusama.**
+<div align="center">
+
+![crab](pic/crab.png)
+As shown in the picture, Slothunter promptly placed their bid immediately after other competitors.
+
+</div>
+
