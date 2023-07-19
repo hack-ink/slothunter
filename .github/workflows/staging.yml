@@ -69,7 +69,7 @@ jobs:
   #     - name: Login
   #       run: cargo login ${{ secrets.CARGO_REGISTRY_TOKEN }}
   #     - name: Publish
-  #       run: .maintain/release.sh
+  #       run: cargo publish --locked
 
   clean-artifacts:
     name: Clean artifacts
