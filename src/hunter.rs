@@ -184,6 +184,8 @@ impl Hunter {
 		Ok((state, block_stream))
 	}
 
+	// TODO: bug from clippy
+	#[allow(clippy::needless_pass_by_ref_mut)]
 	async fn next_block(block_stream: &mut BlockStream) -> Result<Block> {
 		Ok(block_stream.next().await.ok_or(anyhow::anyhow!("failed to get the next block"))??)
 	}
