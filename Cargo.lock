@@ -3121,6 +3121,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "scale-bits"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "036575c29af9b6e4866ffb7fa055dbf623fe7a9cc159b33786de6013a6969d89"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+]
+
+[[package]]
 name = "scale-decode"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3128,11 +3138,25 @@ checksum = "f0459d00b0dbd2e765009924a78ef36b2ff7ba116292d732f00eb0ed8e465d15"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
- "scale-bits",
- "scale-decode-derive",
+ "scale-bits 0.3.0",
+ "scale-decode-derive 0.7.0",
  "scale-info",
  "smallvec",
  "thiserror",
+]
+
+[[package]]
+name = "scale-decode"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea509715113edab351e1f4d51fba6b186653259049a1155b52e2e994dd2f0e6d"
+dependencies = [
+ "parity-scale-codec",
+ "primitive-types",
+ "scale-bits 0.4.0",
+ "scale-decode-derive 0.8.0",
+ "scale-info",
+ "smallvec",
 ]
 
 [[package]]
@@ -3149,6 +3173,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "scale-decode-derive"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66c9d7a1341497e9d016722144310de3dc6c933909c0376017c88f65092fff37"
+dependencies = [
+ "darling 0.14.4",
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "scale-encode"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3156,7 +3193,7 @@ checksum = "b0401b7cdae8b8aa33725f3611a051358d5b32887ecaa0fda5953a775b2d4d76"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
- "scale-bits",
+ "scale-bits 0.3.0",
  "scale-encode-derive",
  "scale-info",
  "smallvec",
@@ -3213,8 +3250,8 @@ dependencies = [
  "either",
  "frame-metadata 15.1.0",
  "parity-scale-codec",
- "scale-bits",
- "scale-decode",
+ "scale-bits 0.3.0",
+ "scale-decode 0.7.0",
  "scale-encode",
  "scale-info",
  "serde",
@@ -3523,7 +3560,7 @@ dependencies = [
  "parity-scale-codec",
  "regex",
  "reqwest",
- "scale-decode",
+ "scale-decode 0.8.0",
  "scale-value",
  "serde",
  "serde_json",
@@ -4096,8 +4133,8 @@ dependencies = [
  "jsonrpsee",
  "parity-scale-codec",
  "primitive-types",
- "scale-bits",
- "scale-decode",
+ "scale-bits 0.3.0",
+ "scale-decode 0.7.0",
  "scale-encode",
  "scale-info",
  "scale-value",
