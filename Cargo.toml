@@ -38,13 +38,13 @@ lettre             = { version = "0.10" }
 parity-scale-codec = { version = "3.6" }
 regex              = { version = "1.9" }
 reqwest            = { version = "0.11", features = ["json"] }
-scale-decode       = { version = "0.7" }
-scale-value        = { version = "0.10" }
+scale-decode       = { version = "0.9" }
+scale-value        = { version = "0.12" }
 serde              = { version = "1.0", features = ["derive"] }
 serde_json         = { version = "1.0" }
 sp-core            = { version = "21.0" }
 sp-runtime         = { version = "24.0" }
-subxt              = { version = "0.30", features = ["substrate-compat"] }
+subxt              = { version = "0.31", features = ["substrate-compat"] }
 tokio              = { version = "1.29", features = ["macros", "rt-multi-thread"] }
 toml               = { version = "0.7" }
 tracing            = { version = "0.1" }
