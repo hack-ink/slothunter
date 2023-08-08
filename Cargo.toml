@@ -43,7 +43,7 @@ scale-value        = { version = "0.12" }
 serde              = { version = "1.0", features = ["derive"] }
 serde_json         = { version = "1.0" }
 sp-core            = { version = "21.0" }
-sp-runtime         = { version = "24.0" }
+sp-runtime         = { version = "25.0" }
 subxt              = { version = "0.31", features = ["substrate-compat"] }
 tokio              = { version = "1.29", features = ["macros", "rt-multi-thread"] }
 toml               = { version = "0.7" }
