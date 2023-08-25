@@ -30,7 +30,7 @@ vergen = { version = "8.2", features = ["build", "cargo", "git", "gitcl"] }
 anyhow             = { version = "1.0" }
 app_dirs2          = { version = "2.5" }
 array-bytes        = { version = "6.1" }
-clap               = { version = "4.3", features = ["derive"] }
+clap               = { version = "4.4", features = ["derive"] }
 color-eyre         = { version = "0.6" }
 futures            = { version = "0.3" }
 jsonrpsee          = { version = "0.16", features = ["async-client", "jsonrpsee-client-transport", "ws-client"] }
