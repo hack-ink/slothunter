@@ -61,7 +61,18 @@ impl Hunter {
 		});
 
 		for u in &self.configuration.notification.webhooks {
-			let _ = self.http.post(u).json(&json).send().await;
+			if u.starts_with("https://hooks.slack.com/services/") {
+				let _ = self
+					.http
+					.post(u)
+					.json(&serde_json::json!({
+						"text": serde_json::to_string(&json).unwrap(),
+					}))
+					.send()
+					.await;
+			} else {
+				let _ = self.http.post(u).json(&json).send().await;
+			}
 		}
 	}
 }
