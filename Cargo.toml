@@ -44,7 +44,7 @@ serde              = { version = "1.0", features = ["derive"] }
 serde_json         = { version = "1.0" }
 sp-core            = { version = "21.0" }
 sp-runtime         = { version = "25.0" }
-subxt              = { version = "0.31", features = ["substrate-compat"] }
+subxt              = { version = "0.32", features = ["substrate-compat"] }
 tokio              = { version = "1.33", features = ["macros", "rt-multi-thread"] }
 toml               = { version = "0.8" }
 tracing            = { version = "0.1" }
