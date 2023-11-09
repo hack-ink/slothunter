@@ -201,9 +201,9 @@ checksum = "f52f63c5c1316a16a4b35eaac8b76a98248961a533f061684cb2a7cb0eafb6c6"
 
 [[package]]
 name = "array-bytes"
-version = "6.1.0"
+version = "6.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9b1c5a481ec30a5abd8dfbd94ab5cf1bb4e9a66be7f1b3b322f2f1170c200fd"
+checksum = "de17a919934ad8c5cc99a1a74de4e2dab95d6121a8f27f94755ff525b630382c"
 
 [[package]]
 name = "arrayref"
@@ -3513,7 +3513,7 @@ version = "0.2.0"
 dependencies = [
  "anyhow",
  "app_dirs2",
- "array-bytes 6.1.0",
+ "array-bytes 6.2.0",
  "clap",
  "color-eyre",
  "futures",
@@ -3800,7 +3800,7 @@ version = "22.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0de478e02efd547693b33ad02515e09933d5b69b7f3036fa890b92e50fd9dfc"
 dependencies = [
- "array-bytes 6.1.0",
+ "array-bytes 6.2.0",
  "bitflags 1.3.2",
  "blake2",
  "bounded-collections",
