@@ -38,7 +38,7 @@ lettre             = { version = "0.11" }
 parity-scale-codec = { version = "3.6" }
 regex              = { version = "1.10" }
 reqwest            = { version = "0.11", features = ["json"] }
-scale-decode       = { version = "0.9" }
+scale-decode       = { version = "0.10" }
 scale-value        = { version = "0.12" }
 serde              = { version = "1.0", features = ["derive"] }
 serde_json         = { version = "1.0" }
