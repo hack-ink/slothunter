@@ -8,7 +8,7 @@ license     = "GPL-3.0"
 name        = "slothunter"
 readme      = "README.md"
 repository  = "https://github.com/hack-ink/slothunter"
-version     = "0.2.0"
+version     = "0.2.1"
 
 [profile.ci-dev]
 incremental = false
@@ -23,7 +23,7 @@ node-test = []
 
 [build-dependencies]
 # crates.io
-vergen = { version = "8.2", features = ["build", "cargo", "git", "gitcl"] }
+vergen = { version = "8.3", features = ["build", "cargo", "git", "gitcl"] }
 
 [dependencies]
 # crates.io
@@ -32,20 +32,19 @@ app_dirs2          = { version = "2.5" }
 array-bytes        = { version = "6.2" }
 clap               = { version = "4.4", features = ["derive"] }
 color-eyre         = { version = "0.6" }
-futures            = { version = "0.3" }
-jsonrpsee          = { version = "0.16", features = ["async-client", "jsonrpsee-client-transport", "ws-client"] }
+jsonrpsee          = { version = "0.20", features = ["async-client", "jsonrpsee-client-transport", "ws-client"] }
 lettre             = { version = "0.11" }
 parity-scale-codec = { version = "3.6" }
 regex              = { version = "1.10" }
 reqwest            = { version = "0.11", features = ["json"] }
-scale-decode       = { version = "0.9" }
-scale-value        = { version = "0.12" }
+scale-decode       = { version = "0.10" }
+scale-value        = { version = "0.13" }
 serde              = { version = "1.0", features = ["derive"] }
 serde_json         = { version = "1.0" }
-sp-core            = { version = "21.0" }
-sp-runtime         = { version = "25.0" }
-subxt              = { version = "0.31", features = ["substrate-compat"] }
-tokio              = { version = "1.33", features = ["macros", "rt-multi-thread"] }
+sp-core            = { version = "26.0" }
+sp-runtime         = { version = "29.0" }
+subxt              = { version = "0.33", features = ["substrate-compat"] }
+tokio              = { version = "1.35", features = ["macros", "rt-multi-thread"] }
 toml               = { version = "0.8" }
 tracing            = { version = "0.1" }
 tracing-subscriber = { version = "0.3" }

@@ -4,23 +4,19 @@ mod configuration;
 pub use configuration::*;
 
 mod graphql;
-pub use graphql::*;
 
 mod node;
-pub use node::*;
 
 mod notification;
 pub use notification::*;
 
 mod tx;
-pub use tx::*;
 
 pub use crate::prelude::*;
 
 // std
 use std::{mem, sync::Arc, thread, time::Duration};
 // crates.io
-use futures::StreamExt;
 use jsonrpsee::{
 	async_client::{Client as WsClient, ClientBuilder as WsClientBuilder},
 	client_transport::ws::WsTransportClientBuilder,
@@ -29,11 +25,9 @@ use reqwest::Client;
 use scale_value::ValueDef;
 #[cfg(feature = "node-test")] use sp_core::{sr25519::Pair, Pair as _};
 #[cfg(feature = "node-test")] use subxt::tx::PairSigner;
-use subxt::{config::polkadot::H256, OnlineClient, PolkadotConfig};
+use subxt::{backend::rpc::RpcClient, config::polkadot::H256, OnlineClient, PolkadotConfig};
 
-type BlockStream = std::pin::Pin<
-	Box<dyn Send + futures::Stream<Item = std::result::Result<Block, subxt::error::Error>>>,
->;
+type BlockStream = subxt::backend::StreamOf<std::result::Result<Block, subxt::Error>>;
 type Block =
 	subxt::blocks::Block<subxt::PolkadotConfig, subxt::OnlineClient<subxt::PolkadotConfig>>;
 
@@ -75,7 +69,7 @@ impl Hunter {
 			notification: Notification { mail: None, webhooks: Vec::new() },
 		};
 		let client = Self::ws_connect(&configuration.node_endpoint).await.unwrap();
-		let node = OnlineClient::from_rpc_client(client.clone()).await.unwrap();
+		let node = OnlineClient::from_rpc_client(RpcClient::new(client.clone())).await.unwrap();
 
 		Self {
 			configuration,
@@ -145,7 +139,7 @@ impl Hunter {
 
 		let client = Self::ws_connect(&self.configuration.node_endpoint).await?;
 
-		self.node = OnlineClient::from_rpc_client(client.clone()).await?;
+		self.node = OnlineClient::from_rpc_client(RpcClient::new(client.clone())).await?;
 		self._ws_connection = client;
 
 		Ok(())
@@ -173,10 +167,12 @@ impl Hunter {
 		self.bidder = if self.is_self_funded() {
 			self.configuration.bid.real
 		} else {
-			util::crowdloan_id_of(self.fund_index_at(&block_hash).await?.expect(&format!(
-				"no existing crowdloan found for parachain({})",
-				self.configuration.bid.para_id,
-			)))
+			util::crowdloan_id_of(self.fund_index_at(&block_hash).await?.unwrap_or_else(|| {
+				panic!(
+					"no existing crowdloan found for parachain({})",
+					self.configuration.bid.para_id
+				)
+			}))
 		};
 		state.auction = self.auction_at(&block_hash).await?;
 		state.auction_is_open = state.auction.is_some();

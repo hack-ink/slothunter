@@ -1,5 +1,7 @@
 //! A bot for Polkadot parachain auction.
 
+#![deny(missing_docs, unused_crate_dependencies)]
+
 mod hunter;
 use hunter::*;
 

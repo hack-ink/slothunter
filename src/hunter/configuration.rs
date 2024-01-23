@@ -8,7 +8,7 @@ use std::{
 use app_dirs2::{AppDataType, AppInfo};
 use serde::Deserialize;
 use sp_core::{sr25519::Pair, Pair as _};
-use subxt::tx::PairSigner;
+use subxt::{backend::rpc::RpcClient, tx::PairSigner};
 // slothunter
 use crate::hunter::*;
 
@@ -239,7 +239,7 @@ impl Token {
 impl Hunter {
 	pub async fn from_configuration(configuration: Configuration) -> Result<Self> {
 		let client = Self::ws_connect(&configuration.node_endpoint).await?;
-		let node = OnlineClient::from_rpc_client(client.clone()).await?;
+		let node = OnlineClient::from_rpc_client(RpcClient::new(client.clone())).await?;
 
 		Ok(Self {
 			configuration,

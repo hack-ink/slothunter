@@ -61,7 +61,7 @@ impl Hunter {
 			.node
 			.storage()
 			.at(block.to_owned())
-			.fetch(&dynamic::storage_root("Auctions", "AuctionInfo"))
+			.fetch(&dynamic::storage("Auctions", "AuctionInfo", <Vec<()>>::new()))
 			.await?
 		{
 			let auction_info = auction_info.to_value()?;
@@ -69,7 +69,7 @@ impl Hunter {
 				.node
 				.storage()
 				.at(block.to_owned())
-				.fetch(&dynamic::storage_root("Auctions", "AuctionCounter"))
+				.fetch(&dynamic::storage("Auctions", "AuctionCounter", <Vec<()>>::new()))
 				.await?
 				.expect("`Auction::AuctionCounter` must exist");
 			let auction_counter = auction_counter.to_value()?;
@@ -119,14 +119,15 @@ impl Hunter {
 			.node
 			.storage()
 			.at(block.to_owned())
-			.iter(dynamic::storage_root("Auctions", "ReservedAmounts"), 32)
+			.iter(dynamic::storage("Auctions", "ReservedAmounts", <Vec<()>>::new()))
 			.await?;
 
-		while let Some((k, v)) = bidders_storage.next().await? {
+		while let Some(r) = bidders_storage.next().await {
+			let (k, v) = r?;
 			// twox64_concat
 			// (twox128(b"Auctions") + twox128(b"ReservedAmounts") + twox64(key)).len() = 40
 			// key = k.0[40..]
-			let (who, para_id) = <(AccountId, ParaId)>::decode(&mut &k.0[40..]).expect(E_DE);
+			let (who, para_id) = <(AccountId, ParaId)>::decode(&mut &k[40..]).expect(E_DE);
 			let existing_deposit = self
 				.node
 				.storage()
